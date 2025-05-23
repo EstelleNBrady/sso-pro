@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, session
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-import os
+import os, secrets
 
 app = Flask(__name__)
 app.config['SERVER_NAME'] = 'localhost:5000'  # Ensures url_for uses 'localhost' not '127.0.0.1'
