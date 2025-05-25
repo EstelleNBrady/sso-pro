@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, session
+from flask import Flask, redirect, url_for, session, render_template
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 import os, secrets
@@ -56,15 +56,7 @@ def dashboard():
 
     email = user.get('email', 'User')
 
-    return f"""
-    <h1>Welcome, {email}</h1>
-    <h3>Connected Applications</h3>
-    <ul>
-        <li><a href="/slack/login">Login to Slack</a></li>
-        <li><a href="https://mail.google.com" target="_blank">Gmail (demo link)</a></li>
-    </ul>
-    <a href="/logout">Logout</a>
-    """
+    return render_template('dashboard.html', email=email)
 
 
 if __name__ == '__main__':
