@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, session, render_template
+from flask import Flask, redirect, url_for, session, render_template, request
+import requests
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 import os, secrets
@@ -58,6 +59,56 @@ def dashboard():
 
     return render_template('dashboard.html', email=email)
 
+
+@app.route('/slack/login')
+def slack_login():
+    slack_auth_url = (
+        "https://slack.com/oauth/authorize"
+        f"?client_id={os.getenv('SLACK_CLIENT_ID')}"
+        f"&scope=identity.basic"
+        f"&redirect_uri={os.getenv('SLACK_REDIRECT_URI')}"
+    )
+    return redirect(slack_auth_url)
+
+
+
+@app.route('/slack/callback')
+def slack_callback():
+    code = request.args.get('code')
+    if not code:
+        return "Authorization failed or was canceled.", 400
+
+    # Exchange code for access token
+    response = requests.post("https://slack.com/api/oauth.access", data={
+        'client_id': os.getenv('SLACK_CLIENT_ID'),
+        'client_secret': os.getenv('SLACK_CLIENT_SECRET'),
+        'code': code,
+        'redirect_uri': os.getenv('SLACK_REDIRECT_URI')
+    })
+
+
+    token_data = response.json()
+    if not token_data.get("ok"):
+        return f"Slack auth failed: {token_data.get('error')}", 400
+
+    # Get user info
+    access_token = token_data['access_token']
+    user_info_res = requests.get(
+        "https://slack.com/api/users.identity",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    user_info = user_info_res.json()
+
+    if not user_info.get("ok"):
+        return f"Failed to fetch Slack user info: {user_info.get('error')}"
+
+    user = user_info.get("user", {})
+    return f"""
+    <h1>Slack Login Successful</h1>
+    <p>Welcome, {user.get('name')}</p>
+    <p>Your Slack ID is {user.get('id')}</p>
+    <p><a href="/dashboard">Back to Dashboard</a></p>
+    """
 
 if __name__ == '__main__':
     app.run(debug=True)
