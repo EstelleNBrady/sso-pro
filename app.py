@@ -23,8 +23,8 @@ oauth.register(
 def index():
     user = session.get('user')
     if user:
-        return f'Hello, {user.get("email", "User")}! <a href="/logout">Logout</a>'
-    return '<a href="/login">Login</a>'
+        return redirect('/dashboard')
+    return '<a href="/login">Login with Cognito</a>'
 
 
 @app.route('/login')
@@ -47,6 +47,25 @@ def authorize():
 def logout():
     session.pop('user', None)
     return redirect('/')
+
+@app.route('/dashboard')
+def dashboard():
+    user = session.get('user')
+    if not user:
+        return redirect('/login')
+
+    email = user.get('email', 'User')
+
+    return f"""
+    <h1>Welcome, {email}</h1>
+    <h3>Connected Applications</h3>
+    <ul>
+        <li><a href="/slack/login">Login to Slack</a></li>
+        <li><a href="https://mail.google.com" target="_blank">Gmail (demo link)</a></li>
+    </ul>
+    <a href="/logout">Logout</a>
+    """
+
 
 if __name__ == '__main__':
     app.run(debug=True)
