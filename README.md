@@ -42,7 +42,7 @@ Architecture
 Features
 Secure user login through AWS Cognito
 
-Slack OAuth integration to display user ID and name
+Slack OAuth integration to display user ID, name and unread DMs.
 
 Clean dashboard UI for future application expansion
 
