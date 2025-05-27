@@ -1,7 +1,9 @@
 SSO Dashboard – Flask, AWS Cognito, and Slack OAuth
+
 This project is a lightweight, extensible single sign-on (SSO) platform designed to centralize authentication and app access. It currently supports authentication via AWS Cognito and OAuth-based login with Slack. Built with Flask for flexibility and speed of development, this platform serves as a foundation for a scalable SSO experience.
 
 Overview
+
 This application provides:
 
 SSO Authentication through AWS Cognito
@@ -26,6 +28,7 @@ dotenv for environment configuration
 
 ngrok (for local testing with public URLs)
 
+Architecture
 [User] --> [Flask Login] --> [Cognito Hosted UI]
          <-- Auth Code & Tokens --
          --> /dashboard (session stored)
@@ -35,7 +38,7 @@ ngrok (for local testing with public URLs)
                 --> Slack Access Token
                     |
                     --> Slack API
-
+                    
 Features
 Secure user login through AWS Cognito
 
