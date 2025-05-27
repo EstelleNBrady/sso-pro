@@ -86,13 +86,13 @@ def slack_callback():
         'redirect_uri': os.getenv('SLACK_REDIRECT_URI')
     })
 
-
     token_data = response.json()
     if not token_data.get("ok"):
         return f"Slack auth failed: {token_data.get('error')}", 400
 
-    # Get user info
     access_token = token_data['access_token']
+    session['slack_token'] = access_token  # 🧠 This is the missing piece!
+
     user_info_res = requests.get(
         "https://slack.com/api/users.identity",
         headers={"Authorization": f"Bearer {access_token}"}
@@ -107,8 +107,39 @@ def slack_callback():
     <h1>Slack Login Successful</h1>
     <p>Welcome, {user.get('name')}</p>
     <p>Your Slack ID is {user.get('id')}</p>
+    <p><a href="/slack/unread">Check Unread DMs</a></p>
     <p><a href="/dashboard">Back to Dashboard</a></p>
     """
+
+@app.route('/slack/unread')
+def slack_unread():
+    token = session.get('slack_token')
+    if not token:
+        return redirect('/slack/login')
+
+    # Get list of all IM channels
+    im_response = requests.get(
+        'https://slack.com/api/conversations.list',
+        headers={'Authorization': f'Bearer {token}'},
+        params={'types': 'im'}
+    )
+    ims = im_response.json().get('channels', [])
+
+    unread_count = 0
+    for im in ims:
+        # Check the unread count per IM channel
+        info_response = requests.get(
+            'https://slack.com/api/conversations.info',
+            headers={'Authorization': f'Bearer {token}'},
+            params={'channel': im['id']}
+        )
+        info = info_response.json()
+        if info.get('ok'):
+            unread_count += info['channel'].get('unread_count_display', 0)
+
+    return f"<h1>You have {unread_count} unread Slack direct messages.</h1><a href='/dashboard'>Back</a>"
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
